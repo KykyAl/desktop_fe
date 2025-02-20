@@ -20,20 +20,38 @@ class DataController extends GetxController {
       TextEditingController(text: '').obs;
   RxString totalToken = "0".obs;
   RxString baseUrl = "".obs;
-  var errorMessage = "".obs; // Tambahkan variabel errorMessage
+  RxString baseUrl2 = "".obs;
 
+  var errorMessage = "".obs;
 
-  Future<void> fetchLocalIp() async {
+  @override
+  onInit() {
+    super.onInit();
+    fetchLocalIp();
+  }
+Future<void> fetchLocalIp() async {
     for (var interface in await NetworkInterface.list()) {
       for (var addr in interface.addresses) {
         if (addr.type == InternetAddressType.IPv4) {
-          log("IP Address: ${addr.address}");
-          baseUrl.value = 'http://${addr.address}:8000/api';
+          String originalIp = addr.address; // Contoh: 172.16.126.221
+          List<String> ipParts = originalIp.split('.'); // Pisah menjadi list
+
+          if (ipParts.length == 4) {
+            ipParts[3] = '250'; // Ganti bagian terakhir dengan 250
+          }
+
+          String modifiedIp = ipParts.join('.'); // Gabungkan kembali
+
+          log("IP Address: $modifiedIp");
+
+          baseUrl2.value = 'http://$modifiedIp:9133/api/images/';
+          baseUrl.value = 'http://$modifiedIp:9133/api';
           return;
         }
       }
     }
   }
+
 
   Future<void> fetchData(String noNfc) async {
     try {
