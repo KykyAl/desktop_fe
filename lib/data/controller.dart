@@ -8,6 +8,7 @@ import 'package:Devpelopment/data/repo/data_repository.dart';
 import 'package:Devpelopment/data/repo/transaction_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class DataController extends GetxController {
@@ -21,35 +22,45 @@ class DataController extends GetxController {
   RxString totalToken = "0".obs;
   RxString baseUrl = "".obs;
   RxString baseUrl2 = "".obs;
+  final box = GetStorage(); 
 
+  Rx<TextEditingController> savedIp =
+      TextEditingController(text: '').obs;
   var errorMessage = "".obs;
-
-  @override
-  onInit() {
+@override
+  void onInit() {
     super.onInit();
-    fetchLocalIp();
+    checkSavedIp();
   }
-Future<void> fetchLocalIp() async {
-    for (var interface in await NetworkInterface.list()) {
-      for (var addr in interface.addresses) {
-        if (addr.type == InternetAddressType.IPv4) {
-          String originalIp = addr.address; // Contoh: 172.16.126.221
-          List<String> ipParts = originalIp.split('.'); // Pisah menjadi list
+@override
+void onClose() {
+  savedIp.value.dispose(); 
+  super.onClose();
+}
+  Future<void> fetchLocalIp(String ip) async {
+    if (ip.isNotEmpty) {
+      baseUrl2.value = 'http://$ip:9133/api/images/';
+      baseUrl.value = 'http://$ip:9133/api';
+      log("BASE URL: ${baseUrl.value}");
 
-          if (ipParts.length == 4) {
-            ipParts[3] = '250'; // Ganti bagian terakhir dengan 250
-          }
-
-          String modifiedIp = ipParts.join('.'); // Gabungkan kembali
-
-          log("IP Address: $modifiedIp");
-
-          baseUrl2.value = 'http://$modifiedIp:9133/api/images/';
-          baseUrl.value = 'http://$modifiedIp:9133/api';
-          return;
-        }
-      }
+      box.write("ip", ip); 
+    } else {
+      errorMessage.value = "IP tidak boleh kosong";
     }
+  }
+
+  void checkSavedIp() {
+    if (box.hasData("ip")) {
+      String saved = box.read("ip");
+      savedIp.value.text = saved; 
+      fetchLocalIp(saved);
+    }
+  }
+
+  void logout() {
+    box.remove("ip"); 
+    savedIp.value.clear(); 
+    errorMessage.value = ""; 
   }
 
 
@@ -99,31 +110,38 @@ Future<void> fetchLocalIp() async {
       debugPrint("Error fetching data: $e");
     }
   }
+Future<http.Response> fetchDatasource(DataModel? body) async {
+  log('${baseUrl.value}/configure-database');
 
-  Future<http.Response> fetchDatasource(DataModel? body) async {
-    log('${baseUrl.value}/configure-database');
-    try {
-      if (baseUrl.isEmpty) {
-        await fetchLocalIp();
-      }
-
-      var response = await http.post(
-        Uri.parse('${baseUrl.value}/configure-database'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(body?.toJson()),
-      );
-
-      if (response.statusCode == 200) {
-        return response;
+  try {
+    if (baseUrl.value.isEmpty) {
+      if (savedIp.value.text.isNotEmpty) {
+        await fetchLocalIp(savedIp.value.text); 
       } else {
-        print('Failed to load data, status code: ${response.statusCode}');
-        return http.Response('Failed to load data', response.statusCode);
+        log("IP kosong, tidak bisa fetch data");
+        return http.Response('IP tidak tersedia', 500);
       }
-    } catch (e) {
-      print('Error: $e');
-      return http.Response('Error: $e', 500);
     }
+
+    var response = await http.post(
+      Uri.parse('${baseUrl.value}/configure-database'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(body?.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      log("Data Berhasil di Fetch");
+      return response;
+    } else {
+      log('Gagal Fetch Data, Status Code: ${response.statusCode}');
+      return http.Response('Gagal Fetch Data', response.statusCode);
+    }
+  } catch (e) {
+    log('Error Fetch Data: $e');
+    return http.Response('Error: $e', 500);
   }
+}
+
 }
