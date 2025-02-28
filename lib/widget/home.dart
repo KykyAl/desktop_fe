@@ -56,53 +56,15 @@ class _HomePageState extends State<HomePage> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blueGrey[700]!, Colors.blueGrey[900]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.4),
-                blurRadius: 10,
-                offset: Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                "assets/images/logo.jpg",
-                height: 50,
-              ),
-
-              SizedBox(height: 5),
-
-              Text(
-                "Cek Saldo Token",
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      backgroundColor: Colors.blueGrey[900],
+         backgroundColor: Colors.blueGrey[900],
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
+              Image.asset(
+                "assets/images/logo.jpg",
+                height: 100,
+              ),
             Expanded(
               child: Row(
                 children: [
