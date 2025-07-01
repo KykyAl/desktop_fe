@@ -1,9 +1,13 @@
+import 'dart:developer';
+
 import 'package:Devpelopment/data/controller.dart';
+import 'package:Devpelopment/widget/video.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_player/video_player.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -19,36 +23,11 @@ class _HomePageState extends State<HomePage> {
     _focusNode.requestFocus();
   }
 
-  Widget _buildImageContainer(String imagePath) {
-    return Obx(
-      () => Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        margin: EdgeInsets.only(right: 8, bottom: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          color: Colors.green,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(5),
-          child: Image.network(
-            '${dataController.baseUrl2.value}$imagePath',
-            width: double.infinity,
-            height: double.infinity,
-            fit: BoxFit.fill,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(child: CircularProgressIndicator());
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Center(child: Icon(Icons.image_not_supported, size: 50));
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
+  final List<String> imagePaths = [
+    'Logo2.jpg',
+    'Logo2.jpg',
+    'Logo2.jpg',
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,8 +35,7 @@ class _HomePageState extends State<HomePage> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(
-                "images/background.jpg"),
+            image: AssetImage("images/background.jpg"),
             fit: BoxFit.cover,
           ),
         ),
@@ -108,19 +86,19 @@ class _HomePageState extends State<HomePage> {
                               Expanded(
                                 flex: 2,
                                 child: _buildGlowingContainer(
-                                  _buildHoverImage("assets/images/Logo2.jpg"),
+                                  _buildHoverImage(imagePaths[0]),
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: _buildGlowingContainer(
-                                  _buildHoverImage("assets/images/Logo2.jpg"),
+                                  _buildHoverImage(imagePaths[1]),
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: _buildGlowingContainer(
-                                  _buildHoverImage("assets/images/Logo2.jpg"),
+                                  _buildHoverImage(imagePaths[2]),
                                 ),
                               ),
                             ],
@@ -133,9 +111,9 @@ class _HomePageState extends State<HomePage> {
                               Expanded(
                                 flex: 4,
                                 child: _carousel([
-                                  "assets/images/Logo2.jpg",
-                                  "assets/images/ghibli.gif",
-                                  "assets/images/ghibliView.gif",
+                                  'Logo2.jpg',
+                                  "vidio1.mp4",
+                                  "vidio2.mp4",
                                 ]),
                               ),
                               Expanded(
@@ -192,23 +170,111 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildGlowingContainer(Widget child) {
-    return Container(
-      margin: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.indigo.withOpacity(0.8),
-            blurRadius: 15,
-            spreadRadius: 3,
+  // Widget _buildHoverImage(String imagePath) {
+  //   return AnimatedContainer(
+  //     duration: Duration(milliseconds: 400),
+  //     margin: EdgeInsets.all(10),
+  //     width: double.infinity,
+  //     height: double.infinity,
+  //     decoration: BoxDecoration(
+  //       color: Colors.blueGrey[700],
+  //       borderRadius: BorderRadius.circular(15),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.indigo.withOpacity(0.3),
+  //           blurRadius: 15,
+  //           offset: Offset(0, 8),
+  //         ),
+  //       ],
+  //       border: Border.all(
+  //         color: Colors.indigo.withOpacity(0.9),
+  //         width: 2,
+  //       ),
+  //     ),
+  //     child: Center(
+  //       child: ClipRRect(
+  //         borderRadius: BorderRadius.circular(5),
+  //         child: Image.network(
+  //           '${dataController.baseUrl2.value}$imagePath',
+  //           width: double.infinity,
+  //           height: double.infinity,
+  //           fit: BoxFit.fill,
+  //           loadingBuilder: (context, child, loadingProgress) {
+  //             if (loadingProgress == null) return child;
+  //             return Center(child: CircularProgressIndicator());
+  //           },
+  //           errorBuilder: (context, error, stackTrace) {
+  //             return Center(child: Icon(Icons.image_not_supported, size: 50));
+  //           },
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // Widget _buildImageContainer(String imagePath) {
+  //   return Obx(
+  //     () => Container(
+  //       width: MediaQuery.of(context).size.width,
+  //       height: MediaQuery.of(context).size.height,
+  //       margin: EdgeInsets.only(right: 8, bottom: 8),
+  //       decoration: BoxDecoration(
+  //         borderRadius: BorderRadius.circular(5),
+  //         color: Colors.green,
+  //       ),
+  //       child: ClipRRect(
+  //         borderRadius: BorderRadius.circular(5),
+  //         child:
+  //       ),
+  //     ),
+  //   );
+  // }
+  bool isVideo(String url) {
+    return url.toLowerCase().endsWith('.mp4');
+  }
+
+  Widget _carousel(List<String> videoPaths) {
+    return CarouselSlider.builder(
+     options: CarouselOptions(
+        height: double.infinity,
+        autoPlay: true,
+        autoPlayInterval: Duration(seconds: 7),
+        enlargeCenterPage: true,
+        viewportFraction: 0.7,
+        enableInfiniteScroll: true,
+        scrollDirection: Axis.horizontal,
+        aspectRatio: 16 / 9,
+        pageSnapping: true,
+      ),
+      itemCount: videoPaths.length,
+      itemBuilder: (context, index, realIndex) {
+        String mediaUrl = '${dataController.baseUrl2}${videoPaths[index]}';
+        log(mediaUrl);
+        return AnimatedContainer(
+          duration: Duration(milliseconds: 400),
+          margin: EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.indigo.withOpacity(0.8),
+                blurRadius: 15,
+                spreadRadius: 3,
+              ),
+            ],
+            border: Border.all(
+              color: Colors.indigo.withOpacity(0.9),
+              width: 2,
+            ),
           ),
-        ],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: child,
-      ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: isVideo(mediaUrl)
+                ? VideoPlayerWidget(videoUrl: mediaUrl) // Widget khusus video
+                : Image.network(mediaUrl, fit: BoxFit.cover), // Gambar biasa
+          ),
+        );
+      },
     );
   }
 
@@ -236,13 +302,46 @@ class _HomePageState extends State<HomePage> {
       child: Center(
         child: ClipRRect(
           borderRadius: BorderRadius.circular(5),
-          child: Image.asset(
-            "assets/images/Logo2.jpg",
-            fit: BoxFit.cover,
+          // child: Image.asset(
+          //   "assets/images/Logo2.jpg",
+          //   fit: BoxFit.cover,
+          //   width: double.infinity,
+          //   height: double.infinity,
+          // ),
+          child: Image.network(
+            '${dataController.baseUrl2.value}$imagePath',
             width: double.infinity,
             height: double.infinity,
+            fit: BoxFit.fill,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(child: CircularProgressIndicator());
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Center(child: Icon(Icons.image_not_supported, size: 50));
+            },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildGlowingContainer(Widget child) {
+    return Container(
+      margin: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.indigo.withOpacity(0.8),
+            blurRadius: 15,
+            spreadRadius: 3,
+          ),
+        ],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: child,
       ),
     );
   }
@@ -484,52 +583,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _carousel(List<String> imagePaths) {
-    return CarouselSlider.builder(
-      options: CarouselOptions(
-        height: double.infinity,
-        autoPlay: true,
-        autoPlayInterval: Duration(seconds: 7),
-        enlargeCenterPage: true,
-        viewportFraction: 0.7,
-        enableInfiniteScroll: true,
-        scrollDirection: Axis.horizontal,
-        aspectRatio: 16 / 9,
-        pageSnapping: true,
-      ),
-      itemCount: imagePaths.length,
-      itemBuilder: (context, index, realIndex) {
-        return AnimatedContainer(
-          duration: Duration(milliseconds: 400),
-          margin: EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.indigo.withOpacity(0.8),
-                blurRadius: 15,
-                spreadRadius: 3,
-              ),
-            ],
-            border: Border.all(
-              color: Colors.indigo.withOpacity(0.9),
-              width: 2,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Image.asset(
-              imagePaths[index],
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-            ),
-          ),
-        );
-      },
     );
   }
 }

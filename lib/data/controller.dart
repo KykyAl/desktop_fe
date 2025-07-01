@@ -1,7 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
-import 'dart:async';
 
 import 'package:Devpelopment/data/datasource/api.dart';
 import 'package:Devpelopment/data/model/data_model.dart';
@@ -68,10 +67,11 @@ class DataController extends GetxController {
 
   Future<void> fetchLocalIp(String ip) async {
     if (ip.isNotEmpty) {
-      baseUrl2.value = 'http://$ip:9133/api/images/';
+    //  baseUrl2.value = 'http://127.0.0.1:8000/api/images/';
+    //   baseUrl.value = 'http://127.0.0.1:8000/api';
+     baseUrl2.value = 'http://$ip:9133/api/images/';
       baseUrl.value = 'http://$ip:9133/api';
       log("BASE URL: ${baseUrl.value}");
-
       box.write("ip", ip);
     } else {
       errorMessage.value = "IP tidak boleh kosong";

@@ -40,6 +40,8 @@ dependencies:
   google_fonts: ^6.2.1
   path_provider: ^2.1.5
   get_storage: ^2.1.1
+  video_player: ^2.9.3
+  flutter_gif: ^0.0.4
 
 dev_dependencies:
   flutter_test:
